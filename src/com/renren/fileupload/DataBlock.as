@@ -8,14 +8,14 @@ package com.renren.fileupload
 	 */
 	public class DataBlock
 	{
-		public var file:FileItem;	//所属文件的引用
-		public var index:uint;		//数据块编号
-		public var amount:uint;		//所属文件被分成的总块数
-		public var data:ByteArray;	//数据对象
+		public var fileItem:FileItem;	//所属文件的引用
+		public var index:uint;			//数据块编号
+		public var amount:uint;			//所属文件被分成的总块数
+		public var data:ByteArray;		//数据对象
 		
-		public function DataBlock(file:FileItem,index:uint,amount:uint,data:ByteArray) 
+		public function DataBlock(fileItem:FileItem,index:uint,amount:uint,data:ByteArray) 
 		{
-			this.file = file;
+			this.fileItem = fileItem;
 			this.index = index;
 			this.amount = amount;
 			this.data = data;

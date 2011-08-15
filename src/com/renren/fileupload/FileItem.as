@@ -13,20 +13,23 @@ package com.renren.fileupload
 		public static var FILE_STATUS_SUCCESS:int		= -4;//上传完毕
 		public static var FILE_STATUS_CANCELLED:int		= -5;//已取消
 		
-		private static var file_id_sequence:uint = 0;		// tracks the file id sequence
+		public static var id_prefix:String = '';		//id前缀
 		
 		public var id:String;	//编号
 		public var status:int;	//状态
 		public var fileReference:FileReference;//文件引用
 		
+		
+		private static var file_id_sequence:uint = 0;	//id增量
+		
+		
 		/**
 		 * 
-		 * @param	idPrifix		<String> id前缀
 		 * @param	fileReference	<FileReference> 文件引用
 		 */
-		public function FileItem(idPrifix:String,fileReference:FileReference) 
+		public function FileItem(fileReference:FileReference) 
 		{
-			this.id = idPrifix + "_" + file_id_sequence++;
+			this.id = id_prefix + "_" + file_id_sequence++;
 			this.fileReference = fileReference;
 		}
 		
