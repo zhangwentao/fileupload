@@ -12,44 +12,59 @@ package com.renren.fileupload
 	 */
 	class DataBlockUploader extends EventDispatcher
 	{
-		public static var upload_url:String = "http://upload.renren.com/upload.fcgi?pagetype=addflash&hostid=200208111";
+		//eg:"http://upload.renren.com/upload.fcgi?pagetype=addflash&hostid=200208111"
+		public static var upload_url:String;	
 		
-		private var uploader:ByteArrayUploader;		
-		private var dataBlock:DataBlock;//上传的数据块
+		public var response:*;					//服务器返回的数据
 		
-		public var response:*;
-			
-		private function initUploader():void
-		{
-			uploader= new ByteArrayUploader();//用于上传二进制数据
-			uploader.url = upload_url;		  //上传cgiurl
-			uploader.addEventListener(IOErrorEvent.IO_ERROR, handle_ioError);
-			uploader.addEventListener(Event.COMPLETE, handle_upload_complete);
-		}
-		
+		private var uploader:ByteArrayUploader;	//用于上传二进制数据	
+		private var dataBlock:DataBlock;		//上传的数据块
+				
 		/**
 		 * 上传dataBlock
 		 * @param	dataBlock 
 		 */
 		public function upload(dataBlock:DataBlock):void
 		{
-			initUploader();
 			this.dataBlock = dataBlock;
+			
+			initUploader();
+			initReqVariables();
 			dataBlock.file.status = FileItem.FILE_STATUS_IN_PROGRESS;//设置图片状态为:正在上传
-			var urlVar:Object = uploader.urlVariables;
-			urlVar["block_index"] = dataBlock.index;
-			urlVar["block_count"] = dataBlock.count;
-			urlVar["uploadid"] = dataBlock.file.id;
 			uploader.upLoad(dataBlock.data);
 		}
 		
+		/**
+		 * 初始化uploader
+		 */
+		private function initUploader():void
+		{
+			uploader= new ByteArrayUploader();
+			uploader.url = upload_url;		  //上传cgiurl
+			uploader.addEventListener(IOErrorEvent.IO_ERROR, handle_ioError);
+			uploader.addEventListener(Event.COMPLETE, handle_upload_complete);
+		}
 		
+		/**
+		 * 初始化请求参数
+		 */
+		private function initReqVariables():void
+		{
+			var urlVar:Object = uploader.urlVariables;//获取uploader的参数对象
+			
+			//-----设置请求参数-----//
+			urlVar["block_index"] = dataBlock.index;
+			urlVar["block_count"] = dataBlock.count;
+			urlVar["uploadid"] = dataBlock.file.id;
+		}
+
 		/**
 		 * 处理ioError
 		 * @param	evt		<ioErrorEvent>	
 		 */
 		private function handle_ioError(evt:IOErrorEvent):void
 		{
+			//TODO:处理IOError错误
 			dispatchEvent(evt);
 		}
 		
@@ -60,11 +75,7 @@ package com.renren.fileupload
 		private function handle_upload_complete(evt:Event):void
 		{
 			response = evt.target.data;
-			var event:DBUploaderEvent = new DBUploaderEvent(DBUploaderEvent.COMPLETE);
-			event.dataBlock = dataBlock;
-			dispatchEvent(event);
-			
-			dataBlock.dispose();//释放内存
+			//TODO:根据服务器返回的信息做出相应的处理
 		}
 	}
 }
