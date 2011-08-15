@@ -1,4 +1,4 @@
-package com.renren.fileupload 
+package com.renren.picupload 
 {
 	import com.renren.picUpload.events.DBUploaderEvent;
 	import com.renren.picUpload.DataSlicer;
@@ -130,9 +130,10 @@ package com.renren.fileupload
 			}
 			log("fileQueuelength:"+fileItemQueue.count)
 		}
-	
+	    
 		
-		public function cancelAFile(fileId:String):void
+		
+		public function cancelFile(fileId:String):void
 		{
 			
 			var arr:Array = fileItemQueue.toArray();
@@ -176,10 +177,6 @@ package com.renren.fileupload
 			uploader.upload(dataBlock);
 		}
 		
-		private function handle_IOError(evt:IOErrorEvent):void
-		{
-			dispatchEvent(evt);
-		}
 		
 		/**
 		 * 监控DBQueue队列：
@@ -218,69 +215,10 @@ package com.renren.fileupload
 			var fileData:ByteArray = evt.target.data as ByteArray;//从本地加载的图片数据
 			var temp:ByteArray = new ByteArray();
 			
-			fileData.position = 0;
-			fileData.readBytes(temp, 0, fileData.length);
-			makeThumb(temp,curProcessFile);
-			temp = new ByteArray();
-			fileData.position = 0;
-			fileData.readBytes(temp, 0, fileData.length);
-			resizePic(temp);
-			fileData.clear();//释放内存
 		}
 		
-		/**
-		 * 获取缩略图
-		 * @param	picData	<ByteArray>	
-		 * @param	file	<FileItem>
-		 */
-		private function makeThumb(picData:ByteArray,file:FileItem):void
-		{
-			log("[" + curProcessFile.fileReference.name + "]开始缩略图制作");
-			var thumbMaker:ThumbMaker = new ThumbMaker();
-			thumbMaker.addEventListener(ThumbMakerEvent.THUMB_MAKED, handle_thumb_maked);
-			thumbMaker.make(picData,file);
-			dispatchEvent(new ThumbMakerEvent(ThumbMakerEvent.THUMB_MAKE_PROGRESS,null, file));//制作缩略图中
-			function handle_thumb_maked(evt:Event):void
-			{
-				dispatchEvent(evt);
-				log("[" + curProcessFile.fileReference.name + "]的缩略图制作完成");
-				//TODO:调度事件，通知截图已经完成
-			}
-		}
 		
-		private function resizePic(picData:ByteArray):void
-		{
-			var event:PicUploadEvent = new PicUploadEvent(PicUploadEvent.START_PROCESS_FILE, curProcessFile);
-			dispatchEvent(event);
-			
-			log("[" + curProcessFile.fileReference.name + "]开始标准化");
-			
-			var resizer:PicStandardizer = new PicStandardizer();
-			resizer.addEventListener(Event.COMPLETE, handle_pic_resized);
-			curProcessFileExif = ExifInjector.extract(picData);//提取Exif
-			log("[" + curProcessFile.fileReference.name + "]EXIF 提取完毕");
-			resizer.standardize(picData);
-		}
 		
-		private function handle_pic_resized(evt:Event):void
-		{
-			
-			log("["+curProcessFile.fileReference.name+"]标准化完毕");
-			var picData:ByteArray = (evt.target as PicStandardizer).dataBeenStandaized;
-			picData = ExifInjector.inject(curProcessFileExif, picData);//插入exif
-			log("[" + curProcessFile.fileReference.name + "]EXIF 装入完毕");
-			var fileSlicer:DataSlicer = new DataSlicer();
-			var dataArr:Array = fileSlicer.slice(picData);
-		    log("["+curProcessFile.fileReference.name + "]被分成了" + dataArr.length + "块");
-			picData.clear();//释放内存
-			for (var i:int = 0; i < dataArr.length; i++)
-			{
-				log("["+curProcessFile.fileReference.name + "]的第"+i+"块被加入上传缓存区");
-				var dataBlock:DataBlock = new DataBlock(curProcessFile,i,dataArr.length,dataArr[i]);
-				DBqueue.push(dataBlock);
-			}
-			lock = false;
-		}
 		
 		/**
 		 * DBUploader成功上传数据完毕后执行:
@@ -290,12 +228,7 @@ package com.renren.fileupload
 		 */
 		private function handle_dataBlock_uploaded(evt:DBUploaderEvent):void
 		{
-			log("["+evt.dataBlock.file.fileReference.name+"]的第"+evt.dataBlock.index+"块上传完毕，释放空间");
-			var uploader:DBUploader = evt.target as DBUploader;
-			uploaderPool.put(uploader);
-			var event:PicUploadEvent = new PicUploadEvent(PicUploadEvent.UPLOAD_SUCCESS, evt.dataBlock.file);
-			event.data = evt.target.responseData;
-			dispatchEvent(event);
+			
 		}
 	}
 
